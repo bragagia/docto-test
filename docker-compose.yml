@@ -1,0 +1,6 @@
+version: '2.0'
+services:
+  doctolib-test:
+    build: ./
+    volumes:
+      - ./:/app:rw
