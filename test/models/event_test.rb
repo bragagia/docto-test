@@ -97,4 +97,6 @@ class EventTest < ActiveSupport::TestCase
   end
 
   # TODO Adds multiple weeks recurring opening test
+
+  # TODO Adds test for weekly recurring event set AFTER the date checked
 end
