@@ -17,53 +17,14 @@ class EventTest < ActiveSupport::TestCase
     assert_equal 7, availabilities.length
   end
 
-  test "multiple days opening test" do
-
-    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 22:30"), ends_at: DateTime.parse("2014-08-05 2:00"), weekly_recurring: true
-    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 23:00"), ends_at: DateTime.parse("2014-08-11 23:30")
-
-    availabilities = Event.availabilities DateTime.parse("2014-08-10")
-    assert_equal Date.new(2014, 8, 10), availabilities[0][:date]
-    assert_equal [], availabilities[0][:slots]
-    assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
-    assert_equal ["22:30", "23:00", "23:30"], availabilities[1][:slots]
-    assert_equal Date.new(2014, 8, 12), availabilities[2][:date]
-    assert_equal ["00:00", "00:30", "01:00", "01:30"], availabilities[2][:slots]
-    assert_equal [], availabilities[3][:slots]
-    assert_equal Date.new(2014, 8, 16), availabilities[6][:date]
-    assert_equal 7, availabilities.length
-  end
-
-  test "multiple days opening and appointment test" do
-
-    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 22:30"), ends_at: DateTime.parse("2014-08-05 2:00"), weekly_recurring: true
-    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 23:30"), ends_at: DateTime.parse("2014-08-12 00:30")
-
-    availabilities = Event.availabilities DateTime.parse("2014-08-10")
-    assert_equal Date.new(2014, 8, 10), availabilities[0][:date]
-    assert_equal [], availabilities[0][:slots]
-    assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
-    assert_equal ["22:30", "23:00"], availabilities[1][:slots]
-    assert_equal Date.new(2014, 8, 12), availabilities[2][:date]
-    assert_equal ["00:30", "01:00", "01:30"], availabilities[2][:slots]
-    assert_equal [], availabilities[3][:slots]
-    assert_equal Date.new(2014, 8, 16), availabilities[6][:date]
-    assert_equal 7, availabilities.length
-  end
-
   test "no availabilities test" do
 
     Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 09:30"), ends_at: DateTime.parse("2014-08-04 12:30"), weekly_recurring: true
     Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 09:30"), ends_at: DateTime.parse("2014-08-11 12:30")
 
     availabilities = Event.availabilities DateTime.parse("2014-08-10")
-    assert_equal Date.new(2014, 8, 10), availabilities[0][:date]
-    assert_equal [], availabilities[0][:slots]
     assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
-    assert_equal ["9:30", "10:00", "11:30", "12:00"], availabilities[1][:slots]
-    assert_equal [], availabilities[2][:slots]
-    assert_equal Date.new(2014, 8, 16), availabilities[6][:date]
-    assert_equal 7, availabilities.length
+    assert_equal [], availabilities[1][:slots]
   end
 
   test "appointment out of opening test" do
@@ -72,31 +33,53 @@ class EventTest < ActiveSupport::TestCase
     Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 09:00"), ends_at: DateTime.parse("2014-08-11 13:00")
 
     availabilities = Event.availabilities DateTime.parse("2014-08-10")
-    assert_equal Date.new(2014, 8, 10), availabilities[0][:date]
-    assert_equal [], availabilities[0][:slots]
     assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
-    assert_equal ["9:30", "10:00", "11:30", "12:00"], availabilities[1][:slots]
-    assert_equal [], availabilities[2][:slots]
-    assert_equal Date.new(2014, 8, 16), availabilities[6][:date]
-    assert_equal 7, availabilities.length
+    assert_equal [], availabilities[1][:slots]
   end
 
   test "no opening test" do
 
-    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 09:30"), ends_at: DateTime.parse("2014-08-04 12:30"), weekly_recurring: false
-    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 09:00"), ends_at: DateTime.parse("2014-08-11 13:00")
-
     availabilities = Event.availabilities DateTime.parse("2014-08-10")
-    assert_equal Date.new(2014, 8, 10), availabilities[0][:date]
-    assert_equal [], availabilities[0][:slots]
-    assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
-    assert_equal [], availabilities[1][:slots]
-    assert_equal [], availabilities[2][:slots]
-    assert_equal Date.new(2014, 8, 16), availabilities[6][:date]
     assert_equal 7, availabilities.length
   end
 
-  # TODO Adds multiple weeks recurring opening test
+  test "non clean hours test" do
+    
+    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 09:37"), ends_at: DateTime.parse("2014-08-04 12:37"), weekly_recurring: true
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 10:37"), ends_at: DateTime.parse("2014-08-11 11:37")
 
-  # TODO Adds test for weekly recurring event set AFTER the date checked
+    availabilities = Event.availabilities DateTime.parse("2014-08-10")
+    assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
+    assert_equal ["9:37", "10:07", "11:37", "12:07"], availabilities[1][:slots]
+  end
+
+  test "weekly recurring event set AFTER the tested date test" do
+    
+    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-18 09:30"), ends_at: DateTime.parse("2014-08-18 12:30"), weekly_recurring: true
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-11 10:30"), ends_at: DateTime.parse("2014-08-11 11:30")
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-18 10:30"), ends_at: DateTime.parse("2014-08-18 11:30")
+
+    availabilities = Event.availabilities DateTime.parse("2014-08-10")
+    assert_equal Date.new(2014, 8, 11), availabilities[1][:date]
+    assert_equal [], availabilities[1][:slots]
+
+    availabilities = Event.availabilities DateTime.parse("2014-08-17")
+    assert_equal Date.new(2014, 8, 18), availabilities[1][:date]
+    assert_equal ["9:30", "10:00", "11:30", "12:00"], availabilities[1][:slots]
+  end
+
+  test "multiple openings and appointments test" do
+    
+    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 09:30"), ends_at: DateTime.parse("2014-08-04 12:30"), weekly_recurring: false
+    Event.create kind: 'opening', starts_at: DateTime.parse("2014-08-04 14:00"), ends_at: DateTime.parse("2014-08-04 18:00"), weekly_recurring: false
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-04 10:30"), ends_at: DateTime.parse("2014-08-04 11:30")
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-04 11:30"), ends_at: DateTime.parse("2014-08-04 12:00")
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-04 14:00"), ends_at: DateTime.parse("2014-08-04 14:30")
+    Event.create kind: 'appointment', starts_at: DateTime.parse("2014-08-04 16:00"), ends_at: DateTime.parse("2014-08-04 18:00")
+
+    availabilities = Event.availabilities DateTime.parse("2014-08-04")
+    assert_equal Date.new(2014, 8, 04), availabilities[0][:date]
+    assert_equal ["9:30", "10:00", "12:00", "14:30", "15:00", "15:30"], availabilities[0][:slots]
+  end
+
 end
