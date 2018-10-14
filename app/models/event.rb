@@ -5,7 +5,17 @@ class Event < ApplicationRecord
   attribute :weekly_recurring, :boolean
 
   def self.availabilities(date)
-    return []
+    availabilities = []
+
+    (0..6).each do |i|
+      availabilities << {
+        date: date.to_date,
+        slots: Event.availabilities_for_specific_day(date)
+      }
+      date += 1.day
+    end
+
+    return availabilities
   end
 
   def self.availabilities_for_specific_day(date)
