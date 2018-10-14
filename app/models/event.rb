@@ -4,6 +4,8 @@ class Event < ApplicationRecord
   attribute :ends_at, :datetime
   attribute :weekly_recurring, :boolean
 
+  SLOT_DURATION = 30.minutes
+
   def self.availabilities(date)
     availabilities = []
 
@@ -94,7 +96,7 @@ class Event < ApplicationRecord
           slots << event_starts_at
         end
       end
-      event_starts_at += 30.minutes
+      event_starts_at += SLOT_DURATION
     end
 
     return slots
