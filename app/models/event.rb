@@ -9,31 +9,51 @@ class Event < ApplicationRecord
   end
 
   def self.availabilities_for_specific_day(date)
-    openings = Event.where(kind: "opening")
+    availabilities = []
+
+    Event.get_reccuring_openings(date, availabilities)
+    Event.get_non_reccuring_openings(date, availabilities)
+
+    return availabilities
+  end
+
+  def self.get_reccuring_openings(date, availabilities)
+    openings = Event.where(kind: "opening", weekly_recurring: true)
     openings.each do |opening|
       op_start = opening.starts_at.to_datetime
       op_end = opening.ends_at.to_datetime
-      if opening.weekly_recurring && date >= op_start.beginning_of_day
-        # Substract week difference, check for the sooner week date after the opening's start datetime
+
+      # If opening is set after tested date
+      if date >= op_start.beginning_of_day
         days_difference = date.beginning_of_day - op_start.beginning_of_day
-        days_difference_modseven = (days_difference - (days_difference % 7)).day
-        if Event.date_matches?(op_start + days_difference_modseven, op_end + days_difference_modseven, date)
+        if days_difference % 7 == 0
           #add opening to tab
-          puts "match" #TODO
-        end
-      else
-        if Event.date_matches?(op_start, op_end, date)
-          #add opening to tab
-          puts "match" #TODO
+          Event.add_to_availabilities(op_start, op_end, availabilities)
         end
       end
     end
+
+    return availabilities
   end
 
-  def self.date_matches?(opening_starts_at, opening_ends_at, date)
-    if date >= opening_starts_at.beginning_of_day && date <= opening_ends_at.end_of_day
-      return true
+  def self.get_non_reccuring_openings(date, availabilities)
+    openings = Event.where(kind: "opening", weekly_recurring: false, starts_at: date.beginning_of_day..date.end_of_day)
+    openings.each do |opening|
+      op_start = opening.starts_at.to_datetime
+      op_end = opening.ends_at.to_datetime
+
+      Event.add_to_availabilities(op_start, op_end, availabilities)
     end
-    return false
+
+    return availabilities
+  end
+
+  def self.add_to_availabilities(opening_starts_at, opening_ends_at, availabilities)
+    while opening_starts_at < opening_ends_at do
+      availabilities << opening_starts_at
+      opening_starts_at += 30.minutes
+    end
+
+    return availabilities
   end
 end
