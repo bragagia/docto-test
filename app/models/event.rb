@@ -10,7 +10,7 @@ class Event < ApplicationRecord
     (0..6).each do |i|
       availabilities << {
         date: date.to_date,
-        slots: Event.availabilities_for_specific_day(date)
+        slots: Event.availabilities_by_day(date)
       }
       date += 1.day
     end
@@ -20,7 +20,7 @@ class Event < ApplicationRecord
 
   private
 
-  def self.availabilities_for_specific_day(date)
+  def self.availabilities_by_day(date)
     availabilities = []
     opening_slots = []
     appointment_slots = []
