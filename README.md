@@ -1,7 +1,7 @@
 # Doctolib-test
 
 This is my project for the Doctolib's technical test.
-It consists of a class Event that allow you to get availabilities from a calendar sets with openings and appointments.
+It consists of a class Event that allows you to get availabilities from a calendar sets with openings and appointments.
 
 Example:
 
@@ -22,10 +22,10 @@ Event.availabilities DateTime.parse("2014-08-10")
 ]
 ```
 
-I made some assumption :
+I made some assumptions :
  - Openings and appointments must not exceed a single day
  - Slots are of a fixed size of 30 minutes
- - An recurring opening event starts to be effective only after its actual date
+ - A recurring opening event starts to be effective only after its actual date
 
 The project uses Ruby 5.1 and is build upon Docker and Docker-Compose.
 
