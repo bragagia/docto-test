@@ -91,6 +91,6 @@ class Event < ApplicationRecord
   end
 
   def self.format_slot(slot)
-    return slot.strftime("%H:%M")
+    return slot.strftime("%-k:%M")
   end
 end
