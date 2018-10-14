@@ -25,6 +25,9 @@ class Event < ApplicationRecord
 
     Event.get_reccuring_openings(date, opening_slots)
     Event.get_non_reccuring_openings(date, opening_slots)
+
+    opening_slots = opening_slots.sort.map { |slot| Event.format_slot(slot) }
+
     Event.get_appointments(date, appointment_slots)
 
     opening_slots.each do |opening|
@@ -46,8 +49,8 @@ class Event < ApplicationRecord
       if date >= op_start.beginning_of_day
         days_difference = date.beginning_of_day - op_start.beginning_of_day
         if days_difference % 7 == 0
-          #add opening to tab
-          Event.add_event_to_slots(op_start, op_end, opening_slots)
+          # Do not format to allow sorting
+          Event.add_event_to_slots(op_start, op_end, opening_slots, false)
         end
       end
     end
@@ -61,7 +64,8 @@ class Event < ApplicationRecord
       op_start = opening.starts_at.to_datetime
       op_end = opening.ends_at.to_datetime
 
-      Event.add_event_to_slots(op_start, op_end, opening_slots)
+      # Do not format to allow sorting
+      Event.add_event_to_slots(op_start, op_end, opening_slots, false)
     end
 
     return opening_slots
@@ -73,16 +77,20 @@ class Event < ApplicationRecord
       at_start = appointment.starts_at.to_datetime
       at_end = appointment.ends_at.to_datetime
 
-      Event.add_event_to_slots(at_start, at_end, appointment_slots)
+      Event.add_event_to_slots(at_start, at_end, appointment_slots, true)
     end
 
     return appointment_slots
   end
 
-  def self.add_event_to_slots(event_starts_at, event_ends_at, slots)
+  def self.add_event_to_slots(event_starts_at, event_ends_at, slots, format)
     while event_starts_at < event_ends_at do
       if not slots.include? Event.format_slot(event_starts_at)
-        slots << Event.format_slot(event_starts_at)
+        if format == true
+          slots << Event.format_slot(event_starts_at)
+        else
+          slots << event_starts_at
+        end
       end
       event_starts_at += 30.minutes
     end
