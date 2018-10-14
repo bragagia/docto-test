@@ -18,6 +18,8 @@ class Event < ApplicationRecord
     return availabilities
   end
 
+  private
+
   def self.availabilities_for_specific_day(date)
     availabilities = []
     opening_slots = []
