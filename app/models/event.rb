@@ -9,7 +9,7 @@ class Event < ApplicationRecord
   def self.availabilities(date)
     availabilities = []
 
-    (0..6).each do |i|
+    7.times do |i|
       availabilities << {
         date: date.to_date,
         slots: Event.availabilities_by_day(date)
